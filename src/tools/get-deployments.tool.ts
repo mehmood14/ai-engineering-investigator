@@ -1,13 +1,16 @@
 import { FunctionTool } from "@google/adk";
 import { z } from "zod";
 
+export const latestDeploymentCommitSha =
+  "8d2d5118a07d6b129df643703cdaf52b208a0b54";
+
 const deployments = [
   {
     id: "dep-103",
     version: "v2.14.3",
     deployedAt: "2026-08-31T14:32:00Z",
     status: "success",
-    commitSha: "a82fc1",
+    commitSha: latestDeploymentCommitSha,
   },
   {
     id: "dep-102",

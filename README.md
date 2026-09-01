@@ -11,7 +11,7 @@ For a reported engineering problem, the agent gathers the available evidence and
 - the supporting evidence; and
 - recommended next actions.
 
-The included evidence tools currently use deterministic demo data for `orders-api`. They are intentionally small seams to replace with real observability, deployment, and source-control integrations.
+The deployment, metrics, and log tools currently use deterministic demo data for `orders-api`. The commit tools retrieve real commit metadata and diffs from GitHub for `mehmood14/ai-engineering-investigator`; set `GITHUB_TOKEN` to avoid unauthenticated API limits.
 
 ## Prerequisites
 
@@ -88,7 +88,8 @@ A request without a non-empty `message` returns `400` with `{ "error": "message 
 | `get_deployments` | Finds recent deployments and their commit SHA. |
 | `get_metrics` | Returns latency, error rate, and request volume for a service. |
 | `get_logs` | Retrieves service logs, optionally filtered by level. |
-| `get_commits` | Retrieves recent commits for a service. |
+| `get_commits` | Retrieves recent commits from GitHub. |
+| `get_commit_details` | Retrieves changed files and patches for the deployed GitHub commit. |
 
 The agent is instructed to use evidence where needed, distinguish correlation from causation, prefer evidence close to the incident, and state when evidence is insufficient.
 
