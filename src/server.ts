@@ -3,23 +3,41 @@ import cors from "@fastify/cors";
 import Fastify from "fastify";
 
 import { streamInvestigation } from "./services/agent.service.js";
+import { normalizeRepository } from "./utils/repository.js";
 
 const app = Fastify({
   logger: true,
 });
 
+const frontendOrigin = process.env["FRONTEND_ORIGIN"] ?? "http://localhost:5173";
+const port = Number(process.env["PORT"] ?? "3001");
+
+if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+  throw new Error("PORT must be an integer between 1 and 65535");
+}
+
 await app.register(cors, {
-  origin: "http://localhost:5173",
+  origin: frontendOrigin,
 });
 
 app.post("/api/investigations/stream", async (request, reply) => {
   const body = request.body as {
     message?: string;
+    repository?: unknown;
   };
 
   if (!body.message?.trim()) {
     return reply.status(400).send({
       error: "message is required",
+    });
+  }
+
+  const repository = normalizeRepository(body.repository);
+
+  if (!repository) {
+    return reply.status(400).send({
+      error:
+        "repository must be in owner/repository or https://github.com/owner/repository format",
     });
   }
 
@@ -31,11 +49,11 @@ app.post("/api/investigations/stream", async (request, reply) => {
     Connection: "keep-alive",
 
     // Required because we're writing directly to raw response
-    "Access-Control-Allow-Origin": "http://localhost:5173",
+    "Access-Control-Allow-Origin": frontendOrigin,
   });
 
   try {
-    for await (const event of streamInvestigation(body.message)) {
+    for await (const event of streamInvestigation(body.message, repository)) {
       reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
     }
   } catch (error) {
@@ -54,6 +72,6 @@ app.post("/api/investigations/stream", async (request, reply) => {
 });
 
 await app.listen({
-  port: 3001,
+  port,
   host: "0.0.0.0",
 });

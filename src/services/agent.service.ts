@@ -24,6 +24,7 @@ type InvestigationEvent =
 
 export async function* streamInvestigation(
   message: string,
+  repository: string,
 ): AsyncGenerator<InvestigationEvent> {
   const userId = "demo-user";
   const sessionId = crypto.randomUUID();
@@ -39,13 +40,23 @@ export async function* streamInvestigation(
     sessionId,
     newMessage: {
       role: "user",
-      parts: [{ text: message }],
+      parts: [
+        {
+          text: `Repository for this investigation: ${repository}\n\nInvestigation request: ${message}`,
+        },
+      ],
     },
   });
 
   let finalOutput = "";
 
   for await (const event of events) {
+    if (event.errorCode || event.errorMessage) {
+      throw new Error(
+        event.errorMessage ?? `Gemini request failed: ${event.errorCode}`,
+      );
+    }
+
     for (const part of event.content?.parts ?? []) {
       if (part.functionCall?.name) {
         yield {

@@ -53,6 +53,15 @@ export const getCommitDetailsTool = new FunctionTool({
       },
     );
 
+    if (response.status === 404 || response.status === 422) {
+      return {
+        found: false,
+        repository,
+        sha,
+        reason: "Commit does not exist in this repository",
+      };
+    }
+
     if (!response.ok) {
       throw new Error(
         `GitHub request failed: ${response.status} ${response.statusText}`,
@@ -62,6 +71,8 @@ export const getCommitDetailsTool = new FunctionTool({
     const commit = (await response.json()) as GitHubCommitDetails;
 
     return {
+      found: true,
+      repository,
       sha: commit.sha,
       message: commit.commit.message,
       url: commit.html_url,
